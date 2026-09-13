@@ -113,6 +113,12 @@ function renderCategories() {
     const listEl = document.getElementById('categories-list');
     listEl.innerHTML = ''; 
 
+    // Обновляем текст текущей категории в мобильной кнопке-аккордеоне
+    const mobileSelectedEl = document.getElementById('mobile-selected-category');
+    if (mobileSelectedEl) {
+        mobileSelectedEl.innerText = currentCategory || "Выберите категорию";
+    }
+
     // Форма добавления категории (добавлен onkeydown для Enter и Escape)
     if (isAddingCategory) {
         const addCatDiv = document.createElement('div');
@@ -190,11 +196,34 @@ function selectCategory(cat) {
     editingBlockIndex = null; 
     isAddingBlock = false;
     render();
+
+    // Автоматически сворачиваем мобильное меню при выборе категории
+    const listEl = document.getElementById('categories-list');
+    if (listEl) listEl.classList.remove('open');
+    const chevron = document.getElementById('mobile-chevron');
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+}
+
+function toggleMobileCategories() {
+    const listEl = document.getElementById('categories-list');
+    const chevron = document.getElementById('mobile-chevron');
+    if (!listEl) return;
+    listEl.classList.toggle('open');
+    if (chevron) {
+        chevron.style.transform = listEl.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
 }
 
 function startAddCategory() {
     isAddingCategory = true;
     render();
+    
+    // Автоматически открываем список на мобильных, чтобы пользователь видел поле ввода
+    const listEl = document.getElementById('categories-list');
+    if (listEl) listEl.classList.add('open');
+    const chevron = document.getElementById('mobile-chevron');
+    if (chevron) chevron.style.transform = 'rotate(180deg)';
+
     setTimeout(() => {
         const inp = document.getElementById('new-cat-input');
         if (inp) inp.focus(); 

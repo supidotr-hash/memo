@@ -29,12 +29,18 @@
                     <h2>Категории</h2>
                     <button class="btn-icon" onclick="startAddCategory()">+ Добавить</button>
                 </div>
+                
+                <!-- Выпадающий блок категорий для мобильных -->
+                <div class="mobile-cat-header" onclick="toggleMobileCategories()">
+                    <span id="mobile-selected-category">Выберите категорию</span>
+                    <i data-lucide="chevron-down" class="icon" id="mobile-chevron"></i>
+                </div>
+
                 <div class="categories-list" id="categories-list"></div>
             </div>
             
-            
-            
-            <div class="sidebar-bottom">
+            <!-- Десктопный блок кнопок снизу сайдбара -->
+            <div class="sidebar-bottom desktop-bottom">
                 <button class="btn-icon" onclick="exportData()" title="Скачать все сниппеты в файл">Экспорт</button>
                 <button class="btn-icon" onclick="triggerImport()" title="Загрузить сниппеты из файла">Импорт</button>
                 <button class="btn-icon" onclick="logout()" title="Выйти из аккаунта">Выход</button>
@@ -49,6 +55,13 @@
             </div>
 
             <div class="blocks-grid" id="blocks-grid"></div>
+
+            <!-- Импорт, Экспорт и Выход в самом низу страницы для мобильных устройств -->
+            <div class="sidebar-bottom mobile-bottom">
+                <button class="btn-icon" onclick="exportData()" title="Скачать все сниппеты в файл">Экспорт</button>
+                <button class="btn-icon" onclick="triggerImport()" title="Загрузить сниппеты из файла">Импорт</button>
+                <button class="btn-icon" onclick="logout()" title="Выйти из аккаунта">Выход</button>
+            </div>
         </main>
     </div>
 
