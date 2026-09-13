@@ -1,11 +1,59 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Supido — Менеджер сниппетов</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    Supido
+    <video id="bgVdo" autoplay muted loop playsinline src="https://cdn.gameograf.com/wp-30261-1762426761.mp4"></video>
+    <div class="overlay"></div>
+
+    <!-- Экран авторизации (по умолчанию скрыт, пока сервер не запросит пароль) -->
+    <div id="login-screen" class="login-wrapper" style="display: none;">
+        <div class="login-card">
+            <div class="logo-supido">Supido</div>
+            <input type="password" id="password-input" class="edit-input" placeholder="Введите пароль" onkeydown="if(event.key === 'Enter') submitLogin()">
+            <button class="btn-save" style="width: 100%; padding: 10px; font-size: 14px; cursor: pointer;" onclick="submitLogin()">Войти</button>
+            <div id="login-error" class="login-error"></div>
+        </div>
+    </div>
+
+    <!-- Основное приложение (скрыто до успешного ввода пароля) -->
+    <div class="app-container" id="app-container" style="display: none;">
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="logo-supido">Supido</div>
+                <div class="sidebar-header">
+                    <h2>Категории</h2>
+                    <button class="btn-icon" onclick="startAddCategory()">+ Добавить</button>
+                </div>
+                <div class="categories-list" id="categories-list"></div>
+            </div>
+            
+            
+            
+            <div class="sidebar-bottom">
+                <button class="btn-icon" onclick="exportData()" title="Скачать все сниппеты в файл">Экспорт</button>
+                <button class="btn-icon" onclick="triggerImport()" title="Загрузить сниппеты из файла">Импорт</button>
+                <button class="btn-icon" onclick="logout()" title="Выйти из аккаунта">Выход</button>
+                <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importData(event)">
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h1 id="category-title">Выберите категорию</h1>
+                <button class="btn-icon" id="add-block-btn" onclick="startAddBlock()" style="display: none;">+ Добавить блок</button>
+            </div>
+
+            <div class="blocks-grid" id="blocks-grid"></div>
+        </main>
+    </div>
+
+    <div id="toast">Скопировано!</div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="script.js"></script>
 </body>
 </html>
