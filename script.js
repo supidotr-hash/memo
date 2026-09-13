@@ -289,7 +289,7 @@ function renderBlocks() {
         addCard.innerHTML = `
             <h3 style="margin-bottom: 8px; color: #1b79c5;">Новый блок</h3>
             <input type="text" id="new-block-title" class="edit-input" placeholder="Название блока" onkeydown="if(event.key === 'Enter') saveNewBlock(); if(event.key === 'Escape') cancelAddBlock();">
-            <textarea id="new-block-code" class="edit-textarea" placeholder="Текст / код" onkeydown="if(event.key === 'Enter' && event.ctrlKey) saveNewBlock(); if(event.key === 'Escape') cancelAddBlock();"></textarea>
+            <textarea id="new-block-code" class="edit-textarea" placeholder="Текст" onkeydown="if(event.key === 'Enter' && event.ctrlKey) saveNewBlock(); if(event.key === 'Escape') cancelAddBlock();"></textarea>
             <div class="edit-actions">
                 <button class="btn-save" onclick="saveNewBlock()">Создать</button>
                 <button class="btn-cancel" onclick="cancelAddBlock()">Отмена</button>
