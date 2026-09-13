@@ -2,11 +2,25 @@ from flask import Flask, jsonify, request, send_from_directory, session
 from datetime import timedelta
 import json
 import os
+from dotenv import load_dotenv
+
+# Загружаем переменные из локального файла .env
+load_dotenv()
 
 app = Flask(__name__, static_folder='.')
-app.secret_key = 'supido_secret_key_123'
-app.permanent_session_lifetime = timedelta(hours=1)  # Автовыход через 1 час
-PASSWORD = "NicoleReeyn"
+
+# Секретный ключ сессий (если его нет в окружении, приложение выдаст ошибку)
+app.secret_key = os.environ.get('SECRET_KEY')
+if not app.secret_key:
+    raise ValueError("Не задан SECRET_KEY в переменных окружения или файле .env!")
+
+app.permanent_session_lifetime = timedelta(hours=1)
+
+# Пароль берется СТРОГО из окружения. Никаких дефолтных "1234" в коде!
+PASSWORD = os.environ.get('PASSWORD')
+if not PASSWORD:
+    raise ValueError("Не задан PASSWORD в переменных окружения или файле .env!")
+
 DB_FILE = 'db.json'
 
 DEFAULT_DB = {
@@ -28,12 +42,11 @@ def static_files(path):
 def login():
     data = request.get_json() or {}
     if data.get('password') == PASSWORD:
-        session.permanent = True  # Включаем учет времени жизни сессии
+        session.permanent = True
         session['authenticated'] = True
         return jsonify({"status": "ok"})
     return jsonify({"error": "Неверный пароль"}), 401
 
-# Эндпоинт для выхода из системы
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()
@@ -63,4 +76,4 @@ def save_db():
     return jsonify({"status": "success"})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='127.0.0.1', port=5000, debug=True)
