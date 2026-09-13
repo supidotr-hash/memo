@@ -1,4 +1,3 @@
-// Инициализация пустой базы данных (загружается с сервера)
 let db = {};
 let currentCategory = ""; 
 let editingBlockIndex = null;                   
@@ -7,8 +6,22 @@ let editingCategoryName = null;
 let isAddingCategory = false;                   
 let draggedCategoryKey = null;                  
 let draggedBlockIndex = null;                   
+let isInterfaceHidden = false;                  
 
-// Загрузка базы данных с проверкой сессии[cite: 3]
+function toggleHideInterface() {
+    isInterfaceHidden = true;
+    document.body.classList.add('interface-hidden');
+}
+
+document.addEventListener('click', (e) => {
+    if (isInterfaceHidden) {
+        isInterfaceHidden = false;
+        document.body.classList.remove('interface-hidden');
+        e.stopImmediatePropagation();
+        e.preventDefault();
+    }
+}, true);
+
 async function loadDb() {
     try {
         let res = await fetch('/api/db');
@@ -27,16 +40,18 @@ async function loadDb() {
         document.getElementById('app-container').style.display = 'flex';
 
         db = await res.json();
-        if (!currentCategory || !db[currentCategory]) {
-            currentCategory = Object.keys(db)[0] || "";
+        
+        const keys = Object.keys(db);
+        if ((!currentCategory || !db[currentCategory]) && keys.length > 0) {
+            currentCategory = keys[0];
         }
+        
         render();
     } catch (err) {
         console.error('Ошибка загрузки данных с сервера:', err);
     }
 }
 
-// Отправка пароля на сервер при входе[cite: 3]
 async function submitLogin() {
     const passInput = document.getElementById('password-input');
     const errorEl = document.getElementById('login-error');
@@ -63,7 +78,6 @@ async function submitLogin() {
     }
 }
 
-// Функция выхода из системы[cite: 3]
 async function logout() {
     try {
         await fetch('/api/logout', { method: 'POST' });
@@ -79,7 +93,6 @@ async function logout() {
     }
 }
 
-// Сохранение состояния базы данных на сервер в файл db.json[cite: 3]
 async function saveDb() {
     try {
         const res = await fetch('/api/db', {
@@ -89,7 +102,7 @@ async function saveDb() {
         });
 
         if (res.status === 401) {
-            alert("Сессия истекла (прошел 1 час). Пожалуйста, войдите снова.");
+            alert("Сессия истекла. Пожалуйста, войдите снова.");
             document.getElementById('app-container').style.display = 'none';
             document.getElementById('login-screen').style.display = 'flex';
         }
@@ -98,28 +111,36 @@ async function saveDb() {
     }
 }
 
-// Главная функция обновления интерфейса[cite: 3]
 function render() {
+    const keys = Object.keys(db);
+    if ((!currentCategory || !db[currentCategory]) && keys.length > 0) {
+        currentCategory = keys[0];
+    }
+
     renderCategories();
     renderBlocks();
-    
+
+    const hasActiveCategory = currentCategory && db[currentCategory];
+    if (hasActiveCategory) {
+        document.body.classList.add('has-active-category');
+    } else {
+        document.body.classList.remove('has-active-category');
+    }
+
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
 }
 
-// Отрисовка списка категорий в сайдбаре[cite: 3]
 function renderCategories() {
     const listEl = document.getElementById('categories-list');
     listEl.innerHTML = ''; 
 
-    // Обновляем текст текущей категории в мобильной кнопке-аккордеоне
     const mobileSelectedEl = document.getElementById('mobile-selected-category');
     if (mobileSelectedEl) {
         mobileSelectedEl.innerText = currentCategory || "Выберите категорию";
     }
 
-    // Форма добавления категории (добавлен onkeydown для Enter и Escape)
     if (isAddingCategory) {
         const addCatDiv = document.createElement('div');
         addCatDiv.style.marginBottom = '10px';
@@ -165,7 +186,6 @@ function renderCategories() {
             render();
         });
 
-        // Режим редактирования названия категории (добавлен onkeydown)
         if (editingCategoryName === cat) {
             item.className = 'category-item';
             item.draggable = false; 
@@ -197,9 +217,12 @@ function selectCategory(cat) {
     isAddingBlock = false;
     render();
 
-    // Автоматически сворачиваем мобильное меню при выборе категории
     const listEl = document.getElementById('categories-list');
-    if (listEl) listEl.classList.remove('open');
+    if (listEl) {
+        listEl.classList.remove('open');
+        const sidebarTop = listEl.closest('.sidebar-top');
+        if (sidebarTop) sidebarTop.classList.remove('menu-open');
+    }
     const chevron = document.getElementById('mobile-chevron');
     if (chevron) chevron.style.transform = 'rotate(0deg)';
 }
@@ -208,7 +231,13 @@ function toggleMobileCategories() {
     const listEl = document.getElementById('categories-list');
     const chevron = document.getElementById('mobile-chevron');
     if (!listEl) return;
+    
     listEl.classList.toggle('open');
+    const sidebarTop = listEl.closest('.sidebar-top');
+    if (sidebarTop) {
+        sidebarTop.classList.toggle('menu-open', listEl.classList.contains('open'));
+    }
+
     if (chevron) {
         chevron.style.transform = listEl.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
     }
@@ -218,9 +247,12 @@ function startAddCategory() {
     isAddingCategory = true;
     render();
     
-    // Автоматически открываем список на мобильных, чтобы пользователь видел поле ввода
     const listEl = document.getElementById('categories-list');
-    if (listEl) listEl.classList.add('open');
+    if (listEl) {
+        listEl.classList.add('open');
+        const sidebarTop = listEl.closest('.sidebar-top');
+        if (sidebarTop) sidebarTop.classList.add('menu-open');
+    }
     const chevron = document.getElementById('mobile-chevron');
     if (chevron) chevron.style.transform = 'rotate(180deg)';
 
@@ -232,6 +264,12 @@ function startAddCategory() {
 
 function cancelAddCategory() {
     isAddingCategory = false;
+    const listEl = document.getElementById('categories-list');
+    if (listEl) {
+        listEl.classList.remove('open');
+        const sidebarTop = listEl.closest('.sidebar-top');
+        if (sidebarTop) sidebarTop.classList.remove('menu-open');
+    }
     render();
 }
 
@@ -294,7 +332,6 @@ function deleteCategory(cat) {
     }
 }
 
-// Отрисовка блоков (сниппетов)[cite: 3]
 function renderBlocks() {
     const gridEl = document.getElementById('blocks-grid');
     const titleEl = document.getElementById('category-title');
@@ -303,7 +340,7 @@ function renderBlocks() {
     gridEl.innerHTML = ''; 
 
     if (!currentCategory || !db[currentCategory]) {
-        titleEl.innerText = "Нет категорий";
+        titleEl.innerText = "Выберите категорию";
         addBtnEl.style.display = 'none';
         return;
     }
@@ -311,7 +348,6 @@ function renderBlocks() {
     titleEl.innerText = currentCategory;
     addBtnEl.style.display = 'block';
 
-    // Форма добавления блока (добавлены onkeydown для полей)
     if (isAddingBlock) {
         const addCard = document.createElement('div');
         addCard.className = 'snippet-card';
@@ -354,7 +390,6 @@ function renderBlocks() {
             render();
         });
 
-        // Режим редактирования блока (добавлены onkeydown)
         if (editingBlockIndex === index) {
             card.draggable = false;
             card.innerHTML = `
@@ -505,5 +540,4 @@ function escapeHtml(str) {
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-// Запуск приложения: загружаем данные с сервера[cite: 3]
 loadDb();

@@ -10,7 +10,7 @@
     <video id="bgVdo" autoplay muted loop playsinline src="https://cdn.gameograf.com/wp-30261-1762426761.mp4"></video>
     <div class="overlay"></div>
 
-    <!-- Экран авторизации (по умолчанию скрыт, пока сервер не запросит пароль) -->
+    <!-- Экран авторизации -->
     <div id="login-screen" class="login-wrapper" style="display: none;">
         <div class="login-card">
             <div class="logo-supido">Supido</div>
@@ -20,7 +20,7 @@
         </div>
     </div>
 
-    <!-- Основное приложение (скрыто до успешного ввода пароля) -->
+    <!-- Основное приложение -->
     <div class="app-container" id="app-container" style="display: none;">
         <aside class="sidebar">
             <div class="sidebar-top">
@@ -30,10 +30,18 @@
                     <button class="btn-icon" onclick="startAddCategory()">+ Добавить</button>
                 </div>
                 
-                <!-- Выпадающий блок категорий для мобильных -->
+                <!-- Выпадающий блок категорий (мобильный селект) -->
                 <div class="mobile-cat-header" onclick="toggleMobileCategories()">
                     <span id="mobile-selected-category">Выберите категорию</span>
                     <i data-lucide="chevron-down" class="icon" id="mobile-chevron"></i>
+                </div>
+
+                <!-- Мобильные кнопки сверху (видны, когда категория выбрана, скрываются при открытии списка) -->
+                <div class="mobile-top-buttons">
+                    <button class="btn-icon" onclick="exportData()" title="Экспорт">Экспорт</button>
+                    <button class="btn-icon" onclick="triggerImport()" title="Импорт">Импорт</button>
+                    <button class="btn-icon" onclick="logout()" title="Выход">Выход</button>
+                    <button class="btn-icon" onclick="toggleHideInterface()" title="Скрыть"><i data-lucide="eye-off" class="icon"></i></button>
                 </div>
 
                 <div class="categories-list" id="categories-list"></div>
@@ -41,9 +49,10 @@
             
             <!-- Десктопный блок кнопок снизу сайдбара -->
             <div class="sidebar-bottom desktop-bottom">
-                <button class="btn-icon" onclick="exportData()" title="Скачать все сниппеты в файл">Экспорт</button>
-                <button class="btn-icon" onclick="triggerImport()" title="Загрузить сниппеты из файла">Импорт</button>
-                <button class="btn-icon" onclick="logout()" title="Выйти из аккаунта">Выход</button>
+                <button class="btn-icon" onclick="exportData()" title="Экспорт">Экспорт</button>
+                <button class="btn-icon" onclick="triggerImport()" title="Импорт">Импорт</button>
+                <button class="btn-icon" onclick="logout()" title="Выход">Выход</button>
+                <button class="btn-icon" onclick="toggleHideInterface()" title="Скрыть"><i data-lucide="eye-off" class="icon"></i></button>
                 <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importData(event)">
             </div>
         </aside>
@@ -55,13 +64,6 @@
             </div>
 
             <div class="blocks-grid" id="blocks-grid"></div>
-
-            <!-- Импорт, Экспорт и Выход в самом низу страницы для мобильных устройств -->
-            <div class="sidebar-bottom mobile-bottom">
-                <button class="btn-icon" onclick="exportData()" title="Скачать все сниппеты в файл">Экспорт</button>
-                <button class="btn-icon" onclick="triggerImport()" title="Загрузить сниппеты из файла">Импорт</button>
-                <button class="btn-icon" onclick="logout()" title="Выйти из аккаунта">Выход</button>
-            </div>
         </main>
     </div>
 
