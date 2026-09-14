@@ -8,6 +8,8 @@ let draggedCategoryKey = null;
 let draggedBlockIndex = null;                   
 let isInterfaceHidden = false;                  
 
+const STORAGE_KEY = 'supido_snippets_db';
+
 function toggleHideInterface() {
     isInterfaceHidden = true;
     document.body.classList.add('interface-hidden');
@@ -22,24 +24,28 @@ document.addEventListener('click', (e) => {
     }
 }, true);
 
-async function loadDb() {
+// Загрузка данных из localStorage браузера
+function loadDb() {
     try {
-        let res = await fetch('/api/db');
-
-        if (res.status === 401) {
-            document.getElementById('app-container').style.display = 'none';
-            document.getElementById('login-screen').style.display = 'flex';
-            setTimeout(() => {
-                const passInput = document.getElementById('password-input');
-                if (passInput) passInput.focus();
-            }, 50);
-            return;
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        if (savedData) {
+            db = JSON.parse(savedData);
+        } else {
+            // Начальные данные, если база пуста
+            db = {
+                "Supido": [
+                    { title: "Supido", code: "Supido" }
+                ]
+            };
+            saveDb();
         }
 
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-container').style.display = 'flex';
-
-        db = await res.json();
+        // Скрываем лог-скрин (если остался в html) и показываем приложение
+        const loginScreen = document.getElementById('login-screen');
+        if (loginScreen) loginScreen.style.display = 'none';
+        
+        const appContainer = document.getElementById('app-container');
+        if (appContainer) appContainer.style.display = 'flex';
         
         const keys = Object.keys(db);
         if ((!currentCategory || !db[currentCategory]) && keys.length > 0) {
@@ -48,66 +54,18 @@ async function loadDb() {
         
         render();
     } catch (err) {
-        console.error('Ошибка загрузки данных с сервера:', err);
+        console.error('Ошибка загрузки из localStorage:', err);
+        db = {};
+        render();
     }
 }
 
-async function submitLogin() {
-    const passInput = document.getElementById('password-input');
-    const errorEl = document.getElementById('login-error');
-    const pass = passInput.value;
-
+// Сохранение данных в localStorage браузера
+function saveDb() {
     try {
-        const loginRes = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: pass })
-        });
-
-        if (loginRes.ok) {
-            errorEl.innerText = "";
-            passInput.value = "";
-            loadDb(); 
-        } else {
-            errorEl.innerText = "Неверный пароль!";
-            passInput.focus();
-            passInput.select();
-        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
     } catch (err) {
-        console.error('Ошибка авторизации:', err);
-    }
-}
-
-async function logout() {
-    try {
-        await fetch('/api/logout', { method: 'POST' });
-        document.getElementById('app-container').style.display = 'none';
-        document.getElementById('login-screen').style.display = 'flex';
-        const passInput = document.getElementById('password-input');
-        if (passInput) {
-            passInput.value = '';
-            passInput.focus();
-        }
-    } catch (err) {
-        console.error('Ошибка при выходе:', err);
-    }
-}
-
-async function saveDb() {
-    try {
-        const res = await fetch('/api/db', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(db)
-        });
-
-        if (res.status === 401) {
-            alert("Сессия истекла. Пожалуйста, войдите снова.");
-            document.getElementById('app-container').style.display = 'none';
-            document.getElementById('login-screen').style.display = 'flex';
-        }
-    } catch (err) {
-        console.error('Ошибка сохранения на сервер:', err);
+        console.error('Ошибка сохранения в localStorage:', err);
     }
 }
 
@@ -119,13 +77,6 @@ function render() {
 
     renderCategories();
     renderBlocks();
-
-    const hasActiveCategory = currentCategory && db[currentCategory];
-    if (hasActiveCategory) {
-        document.body.classList.add('has-active-category');
-    } else {
-        document.body.classList.remove('has-active-category');
-    }
 
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
@@ -528,6 +479,11 @@ function importData(event) {
     }
 }
 
+// Кнопка «Выход» теперь может просто очищать временное состояние или перезагружать страницу
+function logout() {
+    loadDb();
+}
+
 function showToast() {
     const toast = document.getElementById("toast");
     toast.className = "show";
@@ -540,7 +496,7 @@ function escapeHtml(str) {
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-
+// Принудительное зацикливание фонового видео
 const bgVdo = document.getElementById('bgVdo');
 if (bgVdo) {
     bgVdo.addEventListener('ended', () => {
@@ -549,4 +505,5 @@ if (bgVdo) {
     });
 }
 
+// Запуск приложения
 loadDb();
