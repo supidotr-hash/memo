@@ -1,14 +1,12 @@
 let db = {};
 let currentCategory = ""; 
-let editingBlockIndex = null;                   
+let editingBlockIndex = null;                 
 let isAddingBlock = false;                      
 let editingCategoryName = null;                 
 let isAddingCategory = false;                   
 let draggedCategoryKey = null;                  
 let draggedBlockIndex = null;                   
 let isInterfaceHidden = false;                  
-
-const STORAGE_KEY = 'supido_snippets_db';
 
 function toggleHideInterface() {
     isInterfaceHidden = true;
@@ -24,28 +22,43 @@ document.addEventListener('click', (e) => {
     }
 }, true);
 
-// Загрузка данных из localStorage браузера
-function loadDb() {
+async function loadDb() {
+    // 1. Сначала пробуем быстро загрузить данные из localStorage для мгновенного отображения интерфейса
+    const localData = localStorage.getItem('memo_db');
+    if (localData) {
+        try {
+            db = JSON.parse(localData);
+            const keys = Object.keys(db);
+            if ((!currentCategory || !db[currentCategory]) && keys.length > 0) {
+                currentCategory = keys[0];
+            }
+            render();
+        } catch (e) {
+            console.error('Ошибка чтения из localStorage:', e);
+        }
+    }
+
+    // 2. Затем запрашиваем актуальные данные с сервера (и проверяем авторизацию)
     try {
-        const savedData = localStorage.getItem(STORAGE_KEY);
-        if (savedData) {
-            db = JSON.parse(savedData);
-        } else {
-            // Начальные данные, если база пуста
-            db = {
-                "Supido": [
-                    { title: "Supido", code: "Supido" }
-                ]
-            };
-            saveDb();
+        let res = await fetch('/api/db');
+
+        if (res.status === 401) {
+            document.getElementById('app-container').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'flex';
+            setTimeout(() => {
+                const passInput = document.getElementById('password-input');
+                if (passInput) passInput.focus();
+            }, 50);
+            return;
         }
 
-        // Скрываем лог-скрин (если остался в html) и показываем приложение
-        const loginScreen = document.getElementById('login-screen');
-        if (loginScreen) loginScreen.style.display = 'none';
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-container').style.display = 'flex';
+
+        db = await res.json();
         
-        const appContainer = document.getElementById('app-container');
-        if (appContainer) appContainer.style.display = 'flex';
+        // Синхронизируем свежие данные с сервера в localStorage
+        localStorage.setItem('memo_db', JSON.stringify(db));
         
         const keys = Object.keys(db);
         if ((!currentCategory || !db[currentCategory]) && keys.length > 0) {
@@ -54,18 +67,74 @@ function loadDb() {
         
         render();
     } catch (err) {
-        console.error('Ошибка загрузки из localStorage:', err);
-        db = {};
-        render();
+        console.error('Ошибка загрузки данных с сервера (используем локальные данные):', err);
     }
 }
 
-// Сохранение данных в localStorage браузера
-function saveDb() {
+async function submitLogin() {
+    const passInput = document.getElementById('password-input');
+    const errorEl = document.getElementById('login-error');
+    const pass = passInput.value;
+
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+        const loginRes = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pass }) // Проверяется сервером по .env
+        });
+
+        if (loginRes.ok) {
+            errorEl.innerText = "";
+            passInput.value = "";
+            loadDb(); 
+        } else {
+            errorEl.innerText = "Неверный пароль!";
+            passInput.focus();
+            passInput.select();
+        }
+    } catch (err) {
+        console.error('Ошибка авторизации:', err);
+    }
+}
+
+async function logout() {
+    try {
+        await fetch('/api/logout', { method: 'POST' });
+        document.getElementById('app-container').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'flex';
+        const passInput = document.getElementById('password-input');
+        if (passInput) {
+            passInput.value = '';
+            passInput.focus();
+        }
+    } catch (err) {
+        console.error('Ошибка при выходе:', err);
+    }
+}
+
+async function saveDb() {
+    // Сохраняем локально в localStorage при любом изменении
+    try {
+        localStorage.setItem('memo_db', JSON.stringify(db));
     } catch (err) {
         console.error('Ошибка сохранения в localStorage:', err);
+    }
+
+    // Отправляем изменения на сервер
+    try {
+        const res = await fetch('/api/db', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(db)
+        });
+
+        if (res.status === 401) {
+            alert("Сессия истекла. Пожалуйста, войдите снова.");
+            document.getElementById('app-container').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'flex';
+        }
+    } catch (err) {
+        console.error('Ошибка сохранения на сервер (данные сохранены локально):', err);
     }
 }
 
@@ -77,6 +146,13 @@ function render() {
 
     renderCategories();
     renderBlocks();
+
+    const hasActiveCategory = currentCategory && db[currentCategory];
+    if (hasActiveCategory) {
+        document.body.classList.add('has-active-category');
+    } else {
+        document.body.classList.remove('has-active-category');
+    }
 
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
@@ -479,11 +555,6 @@ function importData(event) {
     }
 }
 
-// Кнопка «Выход» теперь может просто очищать временное состояние или перезагружать страницу
-function logout() {
-    loadDb();
-}
-
 function showToast() {
     const toast = document.getElementById("toast");
     toast.className = "show";
@@ -496,7 +567,6 @@ function escapeHtml(str) {
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-// Принудительное зацикливание фонового видео
 const bgVdo = document.getElementById('bgVdo');
 if (bgVdo) {
     bgVdo.addEventListener('ended', () => {
@@ -505,5 +575,4 @@ if (bgVdo) {
     });
 }
 
-// Запуск приложения
 loadDb();

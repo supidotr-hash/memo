@@ -197,7 +197,7 @@ body.interface-hidden .login-wrapper {
     white-space: nowrap;
 }
 
-/* === СЕТКА В СТИЛЕ PINTEREST: 5 КОЛОНОК === */
+/* === СЕТКА В СТИЛЕ PINTEREST === */
 .blocks-grid {
     column-count: 5;
     column-gap: 20px;
@@ -340,7 +340,7 @@ body.interface-hidden .login-wrapper {
     font-size: 12px;
 }
 
-.btn-save:hover {background: #1b79c5;}
+.btn-save:hover { background: #1b79c5; }
 .btn-cancel:hover { background: rgba(255, 255, 255, 0.2); }
 
 #toast {
@@ -436,7 +436,7 @@ body.interface-hidden .login-wrapper {
     font-weight: 500;
 }
 
-/* --- МОБИЛЬНЫЕ СТИЛИ (экраны 980px и меньше) --- */
+/* --- МОБИЛЬНЫЕ СТИЛИ --- */
 .mobile-cat-header {
     display: none;
 }
@@ -459,17 +459,14 @@ body.interface-hidden .login-wrapper {
         gap: 15px;
     }
 
-    /* На мобилке скрываем десктопный блок снизу сайдбара */
     .desktop-bottom {
         display: none !important;
     }
 
-    /* Мобильные кнопки сверху по умолчанию скрыты (когда список закрыт) */
     .mobile-top-buttons {
         display: none !important;
     }
 
-    /* ПОКАЗЫВАЕМ кнопки ТОЛЬКО когда меню категорий открыто (.menu-open) */
     .sidebar-top.menu-open .mobile-top-buttons {
         display: flex !important;
     }

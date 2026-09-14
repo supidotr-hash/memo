@@ -10,8 +10,8 @@
     <video id="bgVdo" autoplay muted loop playsinline src="https://cdn.gameograf.com/wp-30261-1762426761.mp4"></video>
     <div class="overlay"></div>
 
-    <!-- Экран авторизации -->
-    <div id="login-screen" class="login-wrapper" style="display: none;">
+    <!-- Экран авторизации (при старте виден) -->
+    <div id="login-screen" class="login-wrapper" style="display: flex;">
         <div class="login-card">
             <div class="logo-supido">Supido</div>
             <input type="password" id="password-input" class="edit-input" placeholder="Введите пароль" onkeydown="if(event.key === 'Enter') submitLogin()">
@@ -20,7 +20,7 @@
         </div>
     </div>
 
-    <!-- Основное приложение -->
+    <!-- Основное приложение (при старте скрыто) -->
     <div class="app-container" id="app-container" style="display: none;">
         <aside class="sidebar">
             <div class="sidebar-top">
@@ -36,7 +36,7 @@
                     <i data-lucide="chevron-down" class="icon" id="mobile-chevron"></i>
                 </div>
 
-                <!-- Мобильные кнопки сверху (видны, когда категория выбрана, скрываются при открытии списка) -->
+                <!-- Мобильные кнопки сверху -->
                 <div class="mobile-top-buttons">
                     <button class="btn-icon" onclick="exportData()" title="Экспорт">Экспорт</button>
                     <button class="btn-icon" onclick="triggerImport()" title="Импорт">Импорт</button>
