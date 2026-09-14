@@ -540,4 +540,13 @@ function escapeHtml(str) {
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+
+const bgVdo = document.getElementById('bgVdo');
+if (bgVdo) {
+    bgVdo.addEventListener('ended', () => {
+        bgVdo.currentTime = 0;
+        bgVdo.play();
+    });
+}
+
 loadDb();
